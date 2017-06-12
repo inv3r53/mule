@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule  xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans"  xmlns:http="http://www.mulesoft.org/schema/mule/http" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <sub-flow name="invoker">
+        <http:request config-ref="HTTP_Request_Configuration" path="/" method="GET" doc:name="HTTP"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+    </sub-flow>
+  
+    <flow name="demo-2Flow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP" allowedMethods="GET"/>
+        <flow-ref name="invoker" doc:name="invoker"/>
+        <append-string-transformer message="!!" doc:name="Append String"/>
+        <choice-exception-strategy doc:name="Choice Exception Strategy">
+            <catch-exception-strategy when="#[message.inboundProperties.'http.status' == 404]" doc:name="404">
+                <set-payload value="demo2 got 404" doc:name="Set Payload" mimeType="text/plain"/>
+            </catch-exception-strategy>
+            <catch-exception-strategy doc:name="others">
+                <set-payload value="unknown mock error" mimeType="text/plain" doc:name="Set Payload"/>
+            </catch-exception-strategy>
+        </choice-exception-strategy>
+    </flow>
+</mule>
